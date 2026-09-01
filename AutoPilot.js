@@ -1,8 +1,13 @@
 import { Server } from "@modelcontextprotocol/sdk/server/index.js";
-import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
+import { SSEServerTransport } from "@modelcontextprotocol/sdk/server/sse.js";
 import { CallToolRequestSchema, ListToolsRequestSchema } from "@modelcontextprotocol/sdk/types.js";
+import express from "express";
 
-const server = new Server({ name: "autopilot-controller", version: "1.0.0" }, { capabilities: { tools: {} } });
+const app = express();
+const server = new Server(
+  { name: "autopilot-controller", version: "1.0.0" },
+  { capabilities: { tools: {} } }
+);
 
 server.setRequestHandler(ListToolsRequestSchema, async () => {
   return {
@@ -22,13 +27,10 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
   if (request.params.name === "evaluate_current_schema") {
     const args = request.params.arguments || {};
     const fName = args.fileName || "Unknown";
-    
-    // Custom logic to output the exact column data mapped from your SharePoint tracking lists
     let columnResponse = "['StudentNumber', 'ScanTimestamp', 'SignInStatus', 'Subject']";
     if (fName.includes("Lecturer")) {
       columnResponse = "['SubjectName', 'LecturerEmail']";
     }
-
     return {
       content: [{
         type: "text",
@@ -39,8 +41,14 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
   throw new Error("Tool not found");
 });
 
-async function run() {
-  const transport = new StdioServerTransport();
+app.get("/sse", async (req, res) => {
+  const transport = new SSEServerTransport("/messages", res);
   await server.connect(transport);
-}
-run();
+});
+
+app.post("/messages", express.json(), async (req, res) => {
+  res.sendStatus(200);
+});
+
+const PORT = process.env.PORT || 3000;
+app.listen(PORT, () => console.log(`AutoPilot MCP running on port ${PORT}`));
