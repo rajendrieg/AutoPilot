@@ -65,9 +65,24 @@ app.post("/oauth/register", (req, res) => {
 app.get("/oauth/authorize", (req, res) => {
   const { redirect_uri, state } = req.query;
   if (!redirect_uri) return res.status(400).send("Missing redirect_uri parameter.");
+
+  // Validate redirect URI against trusted origins to prevent open redirects
+  const allowedRedirectOrigins = new Set(["https://claude.ai"]);
+  let redirectUrl;
+  try {
+    redirectUrl = new URL(redirect_uri);
+  } catch {
+    return res.status(400).send("Invalid redirect_uri parameter.");
+  }
+
+  if (!allowedRedirectOrigins.has(redirectUrl.origin)) {
+    return res.status(400).send("Unapproved redirect_uri parameter.");
+  }
   
   const dummyAuthCode = "auth_code_" + Math.random().toString(36).substring(7);
-  res.redirect(`${redirect_uri}?code=${dummyAuthCode}&state=${encodeURIComponent(state)}`);
+  redirectUrl.searchParams.set("code", dummyAuthCode);
+  redirectUrl.searchParams.set("state", state ? String(state) : "");
+  res.redirect(redirectUrl.toString());
 });
 
 // Step D: Claude exchanges its code for a Bearer token
