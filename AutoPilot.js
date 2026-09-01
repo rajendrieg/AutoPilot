@@ -126,16 +126,6 @@ function createServer() {
       const args = request.params.arguments || {};
       const fName = args.fileName || "Unknown";
 
-      // Guard check: validate GitHub credentials
-      if (!GITHUB_CLIENT_ID || !GITHUB_CLIENT_SECRET) {
-        return {
-          content: [{
-            type: "text",
-            text: "[MCP ERROR] Configuration missing: GITHUB_CLIENT_ID or GITHUB_CLIENT_SECRET environment variables are not set on Railway."
-          }]
-        };
-      }
-
       let columnResponse = "['StudentNumber', 'ScanTimestamp', 'SignInStatus', 'Subject']";
       if (fName.includes("Lecturer")) {
         columnResponse = "['SubjectName', 'LecturerEmail']";
