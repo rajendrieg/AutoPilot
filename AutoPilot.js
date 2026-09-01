@@ -6,6 +6,11 @@ import express from "express";
 const app = express();
 app.use(express.json());
 
+// Auth bypass for claude.ai OAuth check
+app.get("/.well-known/oauth-authorization-server", (req, res) => {
+  res.status(404).json({ error: "No OAuth configured" });
+});
+
 function createServer() {
   const server = new Server(
     { name: "autopilot-controller", version: "1.0.0" },
