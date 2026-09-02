@@ -1,0 +1,13 @@
+{
+  "name": "autopilot",
+  "version": "3.0.0",
+  "main": "AutoPilot.js",
+  "type": "module",
+  "scripts": {
+    "start": "node AutoPilot.js"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "latest",
+    "express": "^4.18.0"
+  }
+}
